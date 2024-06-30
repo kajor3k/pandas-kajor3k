@@ -14,8 +14,10 @@ From the command-line:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -210,7 +212,19 @@ def correct_title_capitalization(title: str) -> str:
 
     return correct_title
 
+def identify_files(directory: str, result: list[str]) -> list[str]:
+    """
+think it over
+    """
 
+    with os.scandir(directory) as directories:
+        for element in directories:
+            if element.is_file() and Path(element).suffix=='.rst':
+                print(element.path)
+                result.append(element.path)
+            elif element.is_dir():
+                identify_files(element)
+    return result
 def find_titles(rst_file: str) -> Iterable[tuple[str, int]]:
     """
     Algorithm to identify particular text that should be considered headings in an
@@ -247,6 +261,7 @@ def find_titles(rst_file: str) -> Iterable[tuple[str, int]]:
             previous_line = line_no_last_elem
 
 
+
 def main(source_paths: list[str]) -> int:
     """
     The main method to print all headings with incorrect capitalization.
@@ -263,6 +278,7 @@ def main(source_paths: list[str]) -> int:
     """
 
     number_of_errors: int = 0
+    source_paths = identify_files(source_paths)
 
     for filename in source_paths:
         for title, line_number in find_titles(filename):
@@ -273,7 +289,7 @@ def main(source_paths: list[str]) -> int:
                 )
                 number_of_errors += 1
 
-    return number_of_errors
+        return number_of_errors
 
 
 if __name__ == "__main__":
